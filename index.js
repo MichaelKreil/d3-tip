@@ -312,29 +312,42 @@
       var bbox       = {},
           matrix     = targetel.getScreenCTM(),
           tbbox      = targetel.getBBox(),
-          width      = tbbox.width,
-          height     = tbbox.height,
-          x          = tbbox.x,
-          y          = tbbox.y
+          x0         = tbbox.x,
+          y0         = tbbox.y,
+          x1         = tbbox.x+tbbox.width,
+          y1         = tbbox.y+tbbox.height
 
-      point.x = x
-      point.y = y
-      bbox.nw = point.matrixTransform(matrix)
-      point.x += width
-      bbox.ne = point.matrixTransform(matrix)
-      point.y += height
-      bbox.se = point.matrixTransform(matrix)
-      point.x -= width
-      bbox.sw = point.matrixTransform(matrix)
-      point.y -= height / 2
-      bbox.w = point.matrixTransform(matrix)
-      point.x += width
-      bbox.e = point.matrixTransform(matrix)
-      point.x -= width / 2
-      point.y -= height / 2
-      bbox.n = point.matrixTransform(matrix)
-      point.y += height
-      bbox.s = point.matrixTransform(matrix)
+      var xmin = 1e10, xmax = -1e10;
+      var ymin = 1e10, ymax = -1e10;
+
+      // forEach corner of the bbox [[x0,y0],[x1,y1]]
+      // calculate the min-/maximum of x/y
+      [
+        {x:x0,y:y0},
+        {x:x1,y:y0},
+        {x:x1,y:y1},
+        {x:x0,y:y1}
+      ].forEach(function (p) {
+        point.x = p.x;
+        point.y = p.y;
+        p = point.matrixTransform(matrix);
+        if (xmin > p.x) xmin = p.x;
+        if (ymin > p.y) ymin = p.y;
+        if (xmax < p.x) xmax = p.x;
+        if (ymax < p.y) ymax = p.y;
+      })
+
+      var xmid = (xmax+xmin)/2;
+      var ymid = (ymax+ymin)/2;
+
+      bbox.nw = { x:xmin, y:ymin };
+      bbox.n  = { x:xmid, y:ymin };
+      bbox.ne = { x:xmax, y:ymin };
+      bbox.e  = { x:xmax, y:ymid };
+      bbox.se = { x:xmax, y:ymax };
+      bbox.s  = { x:xmid, y:ymax };
+      bbox.sw = { x:xmin, y:ymax };
+      bbox.w  = { x:xmin, y:ymid };
 
       return bbox
     }
